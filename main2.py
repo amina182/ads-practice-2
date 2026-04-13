@@ -1,4 +1,75 @@
-from collections import deque
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class MyLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def add(self, data):
+        new_node = Node(data)
+        if not self.head:
+            self.head = new_node
+            return
+
+        temp = self.head
+        while temp.next:
+            temp = temp.next
+        temp.next = new_node
+
+    def is_empty(self):
+        return self.head is None
+
+    def to_list(self):
+        result = []
+        temp = self.head
+        while temp:
+            result.append(temp.data)
+            temp = temp.next
+        return result
+
+
+class Stack:
+    def __init__(self):
+        self.data = []
+
+    def push(self, item):
+        self.data.append(item)
+
+    def pop(self):
+        if self.data:
+            return self.data.pop()
+        return None
+
+    def peek(self):
+        if self.data:
+            return self.data[-1]
+        return None
+
+    def is_empty(self):
+        return len(self.data) == 0
+
+
+class Queue:
+    def __init__(self):
+        self.data = []
+
+    def enqueue(self, item):
+        self.data.append(item)
+
+    def dequeue(self):
+        if self.data:
+            return self.data.pop(0)
+        return None
+
+    def is_empty(self):
+        return len(self.data) == 0
+
+    def display(self):
+        return self.data
+
 
 class BankAccount:
     def __init__(self, account_number, username, balance=0):
@@ -7,22 +78,14 @@ class BankAccount:
         self.balance = balance
 
     def __str__(self):
-        return f"{self.username} – Balance: {self.balance}"
+        return f"{self.username} - Balance: {self.balance}"
 
 
-
-accounts = []               
-transaction_history = []    
-bill_queue = deque()        
-account_requests = deque()  
+accounts = MyLinkedList()
+transaction_history = Stack()
+bill_queue = Queue()
+account_requests = Queue()
 next_id = 1
-
-
-def find_account(username):
-    for acc in accounts:
-        if acc.username.lower() == username.lower():
-            return acc
-    return None
 
 
 def generate_id():
@@ -32,95 +95,102 @@ def generate_id():
     return acc_id
 
 
+def find_account(username):
+    for acc in accounts.to_list():
+        if acc.username.lower() == username.lower():
+            return acc
+    return None
+
+
 def add_account(username, balance=0):
     if find_account(username):
-        print("Account already exists.")
+        print("Account already exists")
         return
     acc = BankAccount(generate_id(), username, balance)
-    accounts.append(acc)
+    accounts.add(acc)
     print("Account added successfully")
 
 
 def display_accounts():
-    if not accounts:
-        print("No accounts.")
+    if accounts.is_empty():
+        print("No accounts")
         return
     print("Accounts List:")
-    for i, acc in enumerate(accounts, 1):
+    for i, acc in enumerate(accounts.to_list(), 1):
         print(f"{i}. {acc}")
 
 
 def deposit(username, amount):
     acc = find_account(username)
     if not acc:
-        print("Account not found.")
+        print("Account not found")
         return
     acc.balance += amount
-    transaction_history.append(f"Deposit {amount} to {username}")
+    transaction_history.push(f"Deposit {amount} to {username}")
     print("New balance:", acc.balance)
 
 
 def withdraw(username, amount):
     acc = find_account(username)
     if not acc:
-        print("Account not found.")
+        print("Account not found")
         return
     if acc.balance < amount:
-        print("Insufficient funds.")
+        print("Insufficient funds")
         return
     acc.balance -= amount
-    transaction_history.append(f"Withdraw {amount} from {username}")
+    transaction_history.push(f"Withdraw {amount} from {username}")
     print("New balance:", acc.balance)
 
 
 def show_last_transaction():
-    if transaction_history:
-        print("Last transaction:", transaction_history[-1])
+    if not transaction_history.is_empty():
+        print("Last transaction:", transaction_history.peek())
     else:
         print("No transactions")
 
 
 def undo_transaction():
-    if transaction_history:
-        print("Undo →", transaction_history.pop())
+    if not transaction_history.is_empty():
+        print("Undo ", transaction_history.pop())
     else:
         print("Nothing to undo")
 
 
+
 def add_bill():
     bill = input("Enter bill: ")
-    bill_queue.append(bill)
+    bill_queue.enqueue(bill)
     print("Added:", bill)
 
 
 def process_bill():
-    if bill_queue:
-        print("Processing:", bill_queue.popleft())
+    if not bill_queue.is_empty():
+        print("Processing:", bill_queue.dequeue())
     else:
         print("No bills")
 
 
 def show_bills():
-    print("Queue:", list(bill_queue))
-
+    print("Queue:", bill_queue.display())
 
 
 def request_account():
     username = input("Enter username: ")
-    account_requests.append(username)
+    account_requests.enqueue(username)
     print("Request submitted")
 
 
 def process_request():
-    if account_requests:
-        username = account_requests.popleft()
+    if not account_requests.is_empty():
+        username = account_requests.dequeue()
         add_account(username)
     else:
         print("No requests")
 
 
 def show_requests():
-    print("Requests:", list(account_requests))
+    print("Requests:", account_requests.display())
 
 
 
@@ -132,6 +202,7 @@ def show_array():
     print("Array accounts:")
     for acc in arr:
         print(acc)
+
 
 
 def bank_menu():
@@ -181,7 +252,7 @@ def admin_menu():
         elif c == "5":
             show_bills()
         elif c == "6":
-            print(transaction_history)
+            print(transaction_history.data)
         elif c == "7":
             undo_transaction()
         elif c == "8":
@@ -191,8 +262,8 @@ def admin_menu():
 def main():
     show_array()
 
-    accounts.append(BankAccount("ACC0001", "Ali", 150000))
-    accounts.append(BankAccount("ACC0002", "Sara", 220000))
+    accounts.add(BankAccount("ACC0001", "Ali", 150000))
+    accounts.add(BankAccount("ACC0002", "Sara", 220000))
 
     global next_id
     next_id = 3
